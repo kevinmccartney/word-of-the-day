@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
 import requests
+import datetime
 from bs4 import BeautifulSoup
 
-site = requests.get("http://learning.blogs.nytimes.com/2016/08/19/word-of-the-day-quiz-gazette/")
+today = datetime.date.today()
+
+datestring = today.strftime('%Y/%m/%d')
+
+url = "http://learning.blogs.nytimes.com/{0}/word-of-the-day-quiz".format(datestring)
+
+site = requests.get(url)
 page = site.text
 
 soup = BeautifulSoup(page, 'html.parser')
