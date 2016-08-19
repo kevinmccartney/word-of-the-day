@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import pprint
-import inspect
 import requests
 from bs4 import BeautifulSoup
 
