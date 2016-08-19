@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+from TwilioCredentials import *
 import requests
 import datetime
 from bs4 import BeautifulSoup
+from twilio.rest import TwilioRestClient
 
 # getting today's date & formatting
 today = datetime.date.today()
@@ -26,18 +28,25 @@ wod_def = wod_container.find_all('p', {"class": "story-body-text"}, limit=2)
 wod_example = wod_container.find('blockquote')
 
 # making the elements pretty
-pretty_wod_word = wod_word.get_text()
-pretty_wod_def = '\n\n'.join(i.get_text() for i in wod_def)
-pretty_wod_example = wod_example.get_text()
+pretty_wod_word = wod_word.get_text().encode('utf-8')
+pretty_wod_def = '\n\n'.join(i.get_text() for i in wod_def).encode('utf-8')
+pretty_wod_example = wod_example.get_text().encode('utf-8')
 
-# printing the results!
-print("""==========
+args = (pretty_wod_word, pretty_wod_def, pretty_wod_example)
+
+msg = '''
+===========
 WORD OF THE DAY
 ==========
-""")
 
-print(pretty_wod_word)
-print('-----')
-print(pretty_wod_def)
-print('\n')
-print(pretty_wod_example)
+{0}
+-----
+{1}
+
+{2}'''.format(*args)
+
+client = TwilioRestClient(account_sid, auth_token)
+
+message = client.messages.create(body=msg,
+    to= twilio_to,
+    from_= twilio_from)
