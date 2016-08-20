@@ -5,6 +5,7 @@ import datetime
 from bs4 import BeautifulSoup
 from twilio.rest import TwilioRestClient
 import json
+import time
 
 def buildURL():
     global site
@@ -15,8 +16,13 @@ def buildURL():
 
     # building the url & making the request
     url = "http://learning.blogs.nytimes.com/{0}/word-of-the-day-quiz".format(datestring)
-    site = requests.get(url)
-   
+    
+    try:
+        site = requests.get(url)
+    except (HTTPError, Timeout):
+           time.sleep(1800)
+           site = requests.get(url)
+
     return site
 
 def scrape():
