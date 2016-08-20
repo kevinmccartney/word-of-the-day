@@ -24,7 +24,7 @@ def scrape():
 
     # loading the page into BeautifulSoup
     global site
-    page = site.text
+    page = site.text.encode('utf-8')
     soup = BeautifulSoup(page, 'html.parser')
 
     # finding the word of the day container
@@ -51,12 +51,12 @@ def cleanMsg():
     global msg    
 
     for key, value in msg_raw.items():
-        msg_raw[key] = value.get_text().encode('utf-8')
+        msg_raw[key] = value.get_text()
 
     args = (msg_raw["word"], msg_raw["def"], msg_raw["example_intro"], msg_raw["example_text"])
     msg = open("message-template.txt", "r").read().format(*args)
 
-    return msg
+    print(msg)
 
 def sendSMS():
     with open('twiliocredentials.json', 'r') as j:
