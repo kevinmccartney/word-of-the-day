@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-from TwilioCredentials import *
 import requests
 import datetime
 from bs4 import BeautifulSoup
-from bs4 import UnicodeDammit
 from twilio.rest import TwilioRestClient
-import pprint
-import textwrap
+import json
 
 def buildURL():
     global site
@@ -50,32 +47,26 @@ def scrape():
     return msg_raw
     
 def cleanMsg():
-    global msg_raw    
+    global msg_raw
+    global msg    
 
     for key, value in msg_raw.iteritems():
         msg_raw[key] = value.get_text().encode('utf-8')
 
     args = (msg_raw["word"], msg_raw["def"], msg_raw["example_intro"], msg_raw["example_text"])
-    msg = textwrap.dedent(
-    '''
-    ===========
-    WORD OF THE DAY
-    ==========
+    msg = open("message-template.txt", "r").read(). format(*args)
 
-    {0}
-    {1}
-    -----
-    {2}
-    {3}
-    '''.format(*args)
-    )
+    return msg
 
 def sendSMS():
-    client = TwilioRestClient(account_sid, auth_token)
+    with open('twiliocredentials.json', 'r') as j:
+        credentials = json.load(j)
+
+    client = TwilioRestClient(credentials["account_sid"], credentials["auth_token"])
 
     message = client.messages.create(body=msg,
-        to= twilio_to,
-        from_= twilio_from)
+        to= credentials["twilio_to"],
+        from_= credentials["twilio_from"])
 
 def main():
     buildURL()
