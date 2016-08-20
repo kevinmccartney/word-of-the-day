@@ -50,6 +50,11 @@ def scrape():
         'example_text': wod_example_text
     }
 
+    print(type(msg_raw["word"]))
+
+    # for key, value in msg_raw.items():
+    #     if value is None
+
     return msg_raw
     
 def cleanMsg():
@@ -78,6 +83,6 @@ def main():
     buildURL()
     scrape()
     cleanMsg()
-    sendSMS()
+    # sendSMS()
 
 main()
