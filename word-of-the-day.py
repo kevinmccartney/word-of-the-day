@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import requests
 import datetime
@@ -50,11 +50,11 @@ def cleanMsg():
     global msg_raw
     global msg    
 
-    for key, value in msg_raw.iteritems():
+    for key, value in msg_raw.items():
         msg_raw[key] = value.get_text().encode('utf-8')
 
     args = (msg_raw["word"], msg_raw["def"], msg_raw["example_intro"], msg_raw["example_text"])
-    msg = open("message-template.txt", "r").read(). format(*args)
+    msg = open("message-template.txt", "r").read().format(*args)
 
     return msg
 
