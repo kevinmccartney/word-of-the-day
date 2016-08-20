@@ -7,89 +7,84 @@ from twilio.rest import TwilioRestClient
 import json
 import time
 
-def buildURL():
-    global site
- 
-    # getting today's date & formatting
-    today = datetime.date.today()
-    datestring = today.strftime('%Y/%m/%d')
+class Wod:
+    def __init__(self):
+        self.build_url()
+        self.scrape()
+        self.build_msg()
+        self.send_sms()
 
-    # building the url & making the request
-    url = "http://learning.blogs.nytimes.com/{0}/word-of-the-day-quiz".format(datestring)
-    
-    try:
-        site = requests.get(url)
-    except (HTTPError, Timeout):
-           time.sleep(1800)
-           site = requests.get(url)
+    def build_url(self):
+        # getting today's date & formatting
+        today = datetime.date.today()
+        datestring = today.strftime('%Y/%m/%d')
 
-    return site
-
-def scrape():
-    global msg_raw
-
-    # loading the page into BeautifulSoup
-    global site
-    page = site.text.encode('utf-8')
-    soup = BeautifulSoup(page, 'html.parser')
-
-    # finding the word of the day container
-    wod_container = soup.find("article", {"class": "category-word-of-the-day"}).find("div", {"class" : "entry-content"})
-
-    if wod_container:
-        # pulling out the elements we need
-        # TODO: test that the wod_def & wod_example to make sure they behave consistently 
-        try:
-            wod_def = wod_container.find_all('p', {"class": "story-body-text"}, limit=2)[0]
-            wod_example_intro = wod_container.find_all("p", {"class": "story-body-text"}, limit=2)[1]
-        except IndexError:
-            raise SystemExit
+        # building the url & making the request
+        url = "http://learning.blogs.nytimes.com/{0}/word-of-the-day-quiz".format(datestring)
         
-        wod_word =  wod_container.find('h3', {"class": "wod"})
-        wod_example_text = wod_container.find('blockquote')
+        try:
+            self.site = requests.get(url)
+        except (HTTPError, Timeout):
+            time.sleep(1800)
+            self.site = requests.get(url)
 
-        if wod_word and wod_example_text:
-            pass
-        else:
+        return self.site
+
+    def scrape(self):
+        # loading the page into BeautifulSoup
+        page = self.site.text.encode('utf-8')
+        soup = BeautifulSoup(page, 'html.parser')
+
+        # finding the word of the day container
+        wod_container = soup.find("article", {"class": "category-word-of-the-day"}).find("div", {"class" : "entry-content"})
+
+        if wod_container:
+            # pulling out the elements we need
+            # TODO: test that the wod_def & wod_example to make sure they behave consistently 
+            try:
+                wod_def = wod_container.find_all('p', {"class": "story-body-text"}, limit=2)[0]
+                wod_example_intro = wod_container.find_all("p", {"class": "story-body-text"}, limit=2)[1]
+            except IndexError:
+                raise SystemExit
+        
+            wod_word =  wod_container.find('h3', {"class": "wod"})
+            wod_example_text = wod_container.find('blockquote')
+
+            if wod_word and wod_example_text:
+                pass
+            else:
+                raise SystemExit
+        else: 
             raise SystemExit
-    else: 
-        raise SystemExit
 
-    msg_raw = {
-        'word': wod_word, 
-        'def' : wod_def, 
-        'example_intro': wod_example_intro, 
-        'example_text': wod_example_text
-    }
+        self.msg_raw = {
+            'word': wod_word, 
+            'def' : wod_def, 
+            'example_intro': wod_example_intro, 
+            'example_text': wod_example_text
+        }
 
-    return msg_raw
+        return self.msg_raw
     
-def cleanMsg():
-    global msg_raw
-    global msg    
+    def build_msg(self):
+        for key, value in self.msg_raw.items():
+            self.msg_raw[key] = value.get_text()
 
-    for key, value in msg_raw.items():
-        msg_raw[key] = value.get_text()
+        args = (self.msg_raw["word"], self.msg_raw["def"], self.msg_raw["example_intro"], self.msg_raw["example_text"])
+        self.msg = open("message-template.txt", "r").read().format(*args)
 
-    args = (msg_raw["word"], msg_raw["def"], msg_raw["example_intro"], msg_raw["example_text"])
-    msg = open("message-template.txt", "r").read().format(*args)
+        return self.msg
 
-    print(msg)
+    def send_sms(self):
+        with open('twiliocredentials.json', 'r') as j:
+            credentials = json.load(j)
 
-def sendSMS():
-    with open('twiliocredentials.json', 'r') as j:
-        credentials = json.load(j)
+        client = TwilioRestClient(credentials["account_sid"], credentials["auth_token"])
 
-    client = TwilioRestClient(credentials["account_sid"], credentials["auth_token"])
+        message = client.messages.create(body=self.msg,
+            to= credentials["twilio_to"],
+            from_= credentials["twilio_from"])
 
-    message = client.messages.create(body=msg,
-        to= credentials["twilio_to"],
-        from_= credentials["twilio_from"])
+word_of_the_day = Wod()
 
-def main():
-    buildURL()
-    scrape()
-    cleanMsg()
-    # sendSMS()
-
-main()
+word_of_the_day
