@@ -20,15 +20,19 @@ class Wod:
         datestring = today.strftime('%Y/%m/%d')
 
         # building the url & making the request
-        url = "http://learning.blogs.nytimes.com/{0}/word-of-the-day-quiz".format(datestring)
-        
+        # url = "http://learning.blogs.nytimes.com/{0}/word-of-the-day-quiz".format(datestring)
+        url = "http://learning.blogs.nytimes.com/2016/08/19/word-of-the-day-quiz"
+
         try:
             self.site = requests.get(url)
         except (HTTPError, Timeout):
             time.sleep(1800)
             self.site = requests.get(url)
 
-        return self.site
+       if self.site.status_code != '200'
+           raise SystemExit
+       else: 
+           return self.site
 
     def scrape(self):
         # loading the page into BeautifulSoup
@@ -36,7 +40,10 @@ class Wod:
         soup = BeautifulSoup(page, 'html.parser')
 
         # finding the word of the day container
-        wod_container = soup.find("article", {"class": "category-word-of-the-day"}).find("div", {"class" : "entry-content"})
+        try:
+            wod_container = soup.find("article", {"class": "category-word-of-the-day"}).find("div", {"class" : "entry-content"})
+        except(AttributeError):
+            raise SystemExit
 
         if wod_container:
             # pulling out the elements we need
@@ -76,8 +83,8 @@ class Wod:
         return self.msg
 
     def send_sms(self):
-        with open('twiliocredentials.json', 'r') as j:
-            credentials = json.load(j)
+        with open('config.json', 'r') as j:
+            credentials = json.load(j)["twilio"]
 
         client = TwilioRestClient(credentials["account_sid"], credentials["auth_token"])
 

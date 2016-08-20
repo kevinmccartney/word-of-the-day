@@ -1,0 +1,16 @@
+{
+    "twilio": {
+        "account_sid": "{{ account_sid }}",
+        "auth_token": "{{ auth_token }}",
+        "twilio_to": "+10000000000",
+        "twilio_from": "+10000000000"
+    },
+    "db": {
+        "drivername": "postgres",
+        "host": "localhost",
+        "port": "5432",
+        "username": "user",
+        "password": "password",
+        "database": "testdb"
+    }
+}
