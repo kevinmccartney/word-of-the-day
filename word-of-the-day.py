@@ -36,12 +36,24 @@ def scrape():
     # finding the word of the day container
     wod_container = soup.find("article", {"class": "category-word-of-the-day"}).find("div", {"class" : "entry-content"})
 
-    # pulling out the elements we need
-    # TODO: test that the wod_def & wod_example to make sure they behave consistently 
-    wod_word =  wod_container.find('h3', {"class": "wod"})
-    wod_def = wod_container.find_all('p', {"class": "story-body-text"}, limit=2)[0]
-    wod_example_intro = wod_container.find_all("p", {"class": "story-body-text"}, limit=2)[1]
-    wod_example_text = wod_container.find('blockquote')
+    if wod_container:
+        # pulling out the elements we need
+        # TODO: test that the wod_def & wod_example to make sure they behave consistently 
+        try:
+            wod_def = wod_container.find_all('p', {"class": "story-body-text"}, limit=2)[0]
+            wod_example_intro = wod_container.find_all("p", {"class": "story-body-text"}, limit=2)[1]
+        except IndexError:
+            raise SystemExit
+        
+        wod_word =  wod_container.find('h3', {"class": "wod"})
+        wod_example_text = wod_container.find('blockquote')
+
+        if wod_word and wod_example_text:
+            pass
+        else:
+            raise SystemExit
+    else: 
+        raise SystemExit
 
     msg_raw = {
         'word': wod_word, 
@@ -49,11 +61,6 @@ def scrape():
         'example_intro': wod_example_intro, 
         'example_text': wod_example_text
     }
-
-    print(type(msg_raw["word"]))
-
-    # for key, value in msg_raw.items():
-    #     if value is None
 
     return msg_raw
     
